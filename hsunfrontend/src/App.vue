@@ -1,18 +1,27 @@
 <script setup lang="ts">
-    import { RouterLink, RouterView } from 'vue-router'   
-    // import HelloWorld from './components/HelloWorld.vue'
-    import Login from './views/Login.vue';
-
+    import { RouterLink, RouterView } from 'vue-router'
 </script>
 
 <template>
-
-<div>
-    <Login />
-
-</div>
-
+    <RouterView />
 </template>
+  
+<style lang="less" scoped>
 
-<style scoped>
+.size {
+  width: 100%;
+  height: 100%;
+}
+  
+html,
+body {
+  padding: 0 !important;
+  margin: 0;
+  overflow: hidden;
+  .size;
+
+  #app {
+    .size;
+  }
+}
 </style>
