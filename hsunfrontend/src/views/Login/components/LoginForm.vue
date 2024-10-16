@@ -1,5 +1,5 @@
 <template>
-    <div class="login-container">
+    <div class="w-[50%]">
         <el-form :model="loginForm" ref="loginFormRef" :rules="rules" size="'large'">
             <h1 style="width: 100%;text-align: center;margin-bottom: 30px;">登录</h1>
 
