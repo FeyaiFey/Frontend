@@ -17,13 +17,17 @@
                 </el-form-item>
 
                 <el-form-item>
-                    <el-link>立即注册</el-link>
+                    <el-link>忘记密码</el-link>
                 </el-form-item>
             </div>
             
 
             <el-form-item  size="large">
                 <el-button type="primary" @click="login" :loading="isloading" style="width: 100%;font-size: 1.2rem;">{{ login_text }}</el-button>
+            </el-form-item>
+
+            <el-form-item  size="large">
+                <el-button @click="$emit('toRegister')" style="width: 100%;font-size: 1.2rem;">注册</el-button>
             </el-form-item>
 
         </el-form>
@@ -80,7 +84,7 @@
         login_text.value = "登录中...";
 
         try {
-            const response = await axios.post("127.0.0.1:8000/auth/login",{
+            const response = await axios.post("http://127.0.0.1:8000/auth/login",{
                 'email':loginForm.email,
                 'password':loginForm.password
             });
@@ -105,7 +109,7 @@
             login_text.value = "登录";
             ElMessage.error(error.response.data.detail)
         }
-    }
+    };
 
 </script>
 

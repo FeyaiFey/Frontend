@@ -1,5 +1,4 @@
 <script setup lang="ts">
-    import { RouterLink, RouterView } from 'vue-router'
     import RegisterForm from './components/RegisterForm.vue';
     import LoginForm from './components/LoginForm.vue';
     import { ref } from 'vue';

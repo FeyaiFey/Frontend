@@ -1,6 +1,6 @@
 <template>
-    <div class="register-container">
-        <el-form :model="registerForm" ref="registerFormRef" :rules="rules" class="register-form">
+    <div class="w-[50%]">
+        <el-form :model="registerForm" ref="registerFormRef" :rules="rules">
             <h1 style="width: 100%;text-align: center;margin-bottom: 30px;">账号注册</h1>
 
             <el-form-item prop="username">
@@ -27,13 +27,17 @@
                 <el-button type="primary" @click="register" :loading="isloading" style="width: 100%;font-size: 1.2rem;">{{ register_text }}</el-button>
             </el-form-item>
 
+            <el-form-item  size="large">
+                <el-button @click="$emit('toLogin')"  style="width: 100%;font-size: 1.2rem;">已有账号?去注册</el-button>
+            </el-form-item>
+
         </el-form>
     </div>
 
 </template>
   
 <script setup lang="ts">
-    import { ref,reactive,onMounted } from 'vue';
+    import { ref,reactive} from 'vue';
     import { ElMessage } from 'element-plus';
     import axios from 'axios';
     import type { FormInstance, FormRules } from 'element-plus';
@@ -109,7 +113,7 @@
             isloading.value = true;
             register_text.value = "注册中...";
             try {
-                const response = await axios.post("127.0.0.1:8000/auth/register",{
+                const response = await axios.post("http://127.0.0.1:8000/auth/register",{
                     'username':registerForm.username,
                     'email':registerForm.email,
                     'password':registerForm.pass,
