@@ -1,6 +1,6 @@
 <template>
     <div class="w-[50%]">
-        <el-form :model="loginForm" ref="loginFormRef" :rules="rules" size="'large'">
+        <el-form :model="loginForm" ref="loginFormRef" :rules="rules" size="large">
             <h1 style="width: 100%;text-align: center;margin-bottom: 30px;">登录</h1>
 
             <el-form-item prop="email">
@@ -36,7 +36,7 @@
 </template>
   
 <script setup lang="ts">
-    import { ref,reactive,onMounted } from 'vue';
+    import { ref,reactive,onMounted, watch,defineProps } from 'vue';
     import { ElMessage } from 'element-plus';
     import axios from 'axios';
     import type { FormInstance, FormRules } from 'element-plus';
@@ -63,12 +63,17 @@
     const checkEmail =(rule:any,value: any, callback: any) => {
         if (!value) {
             return callback(new Error('请输入邮箱账号！'))
-        }};
+        }else {
+            callback(); // 验证通过
+        }
+    };
         
     // 密码验证是为空
     const checkPassword = (rule:any,value: any, callback: any) => {
         if (!value) {
             return callback(new Error('请输入密码！'))
+        }else {
+            callback(); // 验证通过
         }
     };
 
@@ -78,38 +83,74 @@
         password:[{validator:checkPassword,trigger: 'blur'}]
     })
 
+    // 监听注册数据更新
+    const props = defineProps(['registerData']);
+    watch(() => props.registerData, (newVal) => {
+    if (newVal) {
+        loginForm.email = newVal.email;
+        loginForm.password = newVal.password;
+    }
+    });
+
 
     async function login(){
-        isloading.value = true;
-        login_text.value = "登录中...";
+        console.log(loginFormRef.value)
+        if (!loginFormRef.value) return
 
-        try {
-            const response = await axios.post("http://127.0.0.1:8000/auth/login",{
-                'email':loginForm.email,
-                'password':loginForm.password
+        // 使用 Promise 封装 validate
+        const validateLoginForm = () => {
+            return new Promise<boolean>((resolve, reject) => {
+                loginFormRef.value!.validate((valid, fields) => {
+                    if (valid) {
+                        resolve(true);  // 验证通过
+                    } else {
+                        reject(fields);  // 验证不通过，传递错误信息
+                    }
+                });
             });
-            localStorage.setItem('token',response.data.access_token);
+        };
 
-            // 如果“记住我”被选中，保存用户信息到 localStorage
-            if(loginForm.rememberMe){
-                localStorage.setItem('savedUser',
-                JSON.stringify({
-                    email: loginForm.email,
-                    password: loginForm.password,
-                }))
-            }else{
-                // 如果没有选中“记住我”，则移除存储的用户信息
-                localStorage.removeItem('savedUser');
-            };
-            ElMessage.success("登录成功！");
-            isloading.value = false;
-            login_text.value = "登录";
-        }catch (error:any){
-            isloading.value = false;
-            login_text.value = "登录";
-            ElMessage.error(error.response.data.detail)
+        try{
+            const valid = await validateLoginForm();
+            // const valid = true;
+            if (valid) {
+                isloading.value = true;
+                login_text.value = "登录中...";
+                try{
+                    const response = await axios.post("http://127.0.0.1:8000/auth/login",{
+                        'email':loginForm.email,
+                        'password':loginForm.password
+                    });
+                    localStorage.setItem('token',response.data.access_token);
+                    // 如果“记住我”被选中，保存用户信息到 localStorage
+                    if(loginForm.rememberMe){
+                        localStorage.setItem('savedUser',JSON.stringify({email:loginForm.email,password:loginForm.password}))
+                    }else{
+                        // 如果没有选中“记住我”，则移除存储的用户信息
+                        localStorage.removeItem('savedUser');
+                    };
+                    ElMessage.success("登录成功！");
+                    isloading.value = false;
+                    login_text.value = "登录";
+                }catch(error:any){
+                    isloading.value = false;
+                    login_text.value = "登录";
+                    ElMessage.error(error.response.data.detail)
+                }
+            }
+        }catch(errorFields){
+            ElMessage.error('表单内容有误，请检查输入！');
+            const fields = errorFields as Record<string, any[]>;
+
+            console.log(fields)
+            Object.keys(fields).forEach(field => {
+                const errorMessage = fields[field][0].message;  // 取每个字段的第一条错误信息
+                ElMessage.error(`${errorMessage}`);
+                console.log(field)  // 显示具体的字段错误信息
+            });
         }
     };
+
 
 </script>
 

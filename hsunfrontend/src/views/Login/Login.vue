@@ -12,8 +12,10 @@
     }
 
     const toLogin = () => {
-        isLogin.value = true
+        isLogin.value = true;
     }
+
+    
 
 </script>
 

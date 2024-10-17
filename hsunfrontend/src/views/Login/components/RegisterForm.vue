@@ -1,6 +1,6 @@
 <template>
     <div class="w-[50%]">
-        <el-form :model="registerForm" ref="registerFormRef" :rules="rules">
+        <el-form :model="registerForm" ref="registerFormRef" :rules="rules" size="large">
             <h1 style="width: 100%;text-align: center;margin-bottom: 30px;">账号注册</h1>
 
             <el-form-item prop="username">
@@ -20,7 +20,7 @@
             </el-form-item>
 
             <el-form-item prop="role_number">
-                <el-input v-model="registerForm.role_number" placeholder="权限码(非必填)" prefix-icon="Bell" show-password size="large" />
+                <el-input v-model="registerForm.role_number" placeholder="权限码(非必填)" prefix-icon="Bell" size="large" />
             </el-form-item>
             
             <el-form-item  size="large">
@@ -53,18 +53,26 @@
     const checkUsername =(rule:any,value: any, callback: any) => {
         if (!value) {
             return callback(new Error('请输入用户名！'))
-        }};
+        }else {
+            callback(); // 验证通过
+        }
+    };
 
     // 邮箱验证器
     const checkEmail =(rule:any,value: any, callback: any) => {
         if (!value) {
             return callback(new Error('请输入邮箱账号！'))
-        }};
+        }else {
+            callback(); // 验证通过
+        }
+    };
         
     // 密码验证是为空
     const checkPass = (rule:any,value: any, callback: any) => {
         if (!value) {
             return callback(new Error('请输入密码！'))
+        }else {
+            callback(); // 验证通过
         }
     };
 
@@ -78,13 +86,15 @@
         }
     }
 
-    function role_id(role_code:any){
-        if(role_code === "68241373" || role_code === 68241373){
-            return "1"
+    function role_code(code:any){
+        if (code === 68241373 || code === '68241373'){
+            return 68241373
         }else{
-            return "2"
+            return 1
         }
     }
+
+    const emit = defineEmits();
 
     // 定义验证规则
     const rules = reactive<FormRules<typeof registerForm>>({
@@ -95,38 +105,66 @@
     })
 
 
-    async function register(formEl: FormInstance | undefined){
-        if (!formEl) return
+    async function register(){
+        if (!registerFormRef.value) return
+
         // 使用 Promise 封装 validate
         const validateForm = () => {
-            return new Promise<boolean>((resolve) => {
-                formEl.validate((valid) => {
-                    resolve(valid);
+            return new Promise<boolean>((resolve, reject) => {
+                registerFormRef.value!.validate((valid, fields) => {
+                    if (valid) {
+                        resolve(true);  // 验证通过
+                    } else {
+                        reject(fields);  // 验证不通过，传递错误信息
+                    }
                 });
             });
         };
 
         // 等待表单验证结果
-        const valid = await validateForm();
-     
-        if (valid) {
-            isloading.value = true;
-            register_text.value = "注册中...";
-            try {
-                const response = await axios.post("http://127.0.0.1:8000/auth/register",{
-                    'username':registerForm.username,
-                    'email':registerForm.email,
-                    'password':registerForm.pass,
-                    'role_id':role_id(registerForm.role_number)
-                });
-                ElMessage.success("注册成功！");
-                isloading.value = false;
-                register_text.value = "注册";
-            }catch (error:any){
-                isloading.value = false;
-                register_text.value = "注册";
-                ElMessage.error(error.response.data.detail)
+        try{
+            const valid = await validateForm();
+            if (valid) {
+                isloading.value = true;
+                register_text.value = "注册中...";
+                try{
+                    const response = await axios.post("http://127.0.0.1:8000/auth/register",{
+                        'username':registerForm.username,
+                        'email':registerForm.email,
+                        'password':registerForm.pass,
+                        'code':role_code(registerForm.role_number)
+                    });
+                    ElMessage.success("注册成功！三秒后跳转登录页。。。");
+                    isloading.value = false;
+                    register_text.value = "注册";
+                    setTimeout(() => {
+                        // 使用事件或其他方法切换到登录组件
+                        // 这里假设使用了 $emit 来通知父组件
+                        emit('toLogin')
+                    },3000)
+                }catch(error:any){
+                    if (error.response && error.response.status === 422){
+                        const errors = error.response.data.detail; // 获取错误信息
+                        errors.forEach((err:any) => {
+                            ElMessage.error(`${err.loc.join('. ')}: ${err.msg}`);
+                        });
+                    }else{
+                        ElMessage.error(error.response.data.detail);
+                        isloading.value = false;
+                        register_text.value = "注册";
+                    };                   
+                }
             }
+        }catch(errorFields){
+            // ElMessage.error('表单内容有误，请检查输入！');
+            const fields = errorFields as Record<string, any[]>;
+
+            console.log(fields)
+            Object.keys(fields).forEach(field => {
+                const errorMessage = fields[field][0].message;  // 取每个字段的第一条错误信息
+                ElMessage.error(`${errorMessage}`);
+                console.log(field)  // 显示具体的字段错误信息
+        });
         }
     }
     
