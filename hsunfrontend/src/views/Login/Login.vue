@@ -2,6 +2,11 @@
     import RegisterForm from './components/RegisterForm.vue';
     import LoginForm from './components/LoginForm.vue';
     import { ref } from 'vue';
+    import { useDesign } from '@/hooks/web/useDesign';
+
+    const { getPrefixCls } = useDesign()
+
+    const prefixCls = getPrefixCls('login')
 
     const logincss = ref("logincss")
 
@@ -21,13 +26,13 @@
 
 <template>
     <div
-      :class="logincss"
+      :class="prefixCls"
       class="h-[100%] relative lt-xl:bg-[var(--login-bg-color)] lt-sm:px-10px lt-xl:px-10px lt-md:px-10px"
     >
       <ElScrollbar class="h-full">
         <div class="relative flex mx-auto min-h-100vh">
           <div
-            :class="`logincss__left flex-1 bg-gray-500 bg-opacity-20 relative p-30px lt-xl:hidden`"
+            :class="`${prefixCls}__left flex-1 bg-gray-500 bg-opacity-20 relative p-30px lt-xl:hidden`"
           >
             <div class="flex items-center relative text-white">
                 <img src="@/assets/Logo/Logo.png" alt="" class="w-48px h-48px mr-10px" />
@@ -72,9 +77,9 @@
   
 <style lang="less" scoped>
 
-@prefix-cls: ~'logincss';
+@prefix-cls: ~'v-login';
   
-.logincss {
+.@{prefix-cls} {
     overflow: auto;
   
     &__left {
